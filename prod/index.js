@@ -6,7 +6,12 @@ const client = new Client({intents: [1, 2, 4, 512, 4096]});
 identifyProperties.browser = "Discord iOS";
 const fs = require('node:fs');
 const path = require('node:path');
-const {botId, botToken} = require("../config");
+const {botToken} = require("../config");
+
+const VerifyButton = require("./buttons/VerifyButton");
+const TicketButtons = require("./buttons/TicketButtons");
+
+const TicketModal = require("./modals/TicketModal");
 
 // Listen for slash commands in the commands folder
 client.commands = new Collection();
@@ -28,7 +33,6 @@ for (const folder of commandFolders) {
         }
     }
 }
-
 client.on(Events.InteractionCreate, async interaction => {
     if (!interaction.isChatInputCommand()) return;
     const command = interaction.client.commands.get(interaction.commandName);
@@ -50,11 +54,55 @@ client.on(Events.InteractionCreate, async interaction => {
     }
 });
 
+client.on(Events.InteractionCreate, async interaction => {
+    if (!interaction.isButton()) return;
+    if (interaction.customId !== 'verify') return;
+    try {
+        await VerifyButton.execute(interaction);
+    } catch (error) {
+        console.error(error);
+        if (interaction.replied || interaction.deferred) {
+            await interaction.followUp({content: 'There was an error while verifying!', ephemeral: true});
+        } else {
+            await interaction.reply({content: 'There was an error while verifying!', ephemeral: true});
+        }
+    }
+});
+
+client.on(Events.InteractionCreate, async interaction => {
+    if (!interaction.isButton()) return;
+    if (!interaction.customId.includes('ticket_')) return;
+    try {
+        await TicketButtons.execute(interaction);
+    } catch (error) {
+        console.error(error);
+        if (interaction.replied || interaction.deferred) {
+            await interaction.followUp({content: 'There was an error while creating a ticket!', ephemeral: true});
+        } else {
+            await interaction.reply({content: 'There was an error while creating a ticket!', ephemeral: true});
+        }
+    }
+});
+
+client.on(Events.InteractionCreate, async interaction => {
+    if (!interaction.isModalSubmit()) return;
+    if (!interaction.customId.includes('ticket_Create')) return;
+    try {
+        await TicketModal.execute(interaction);
+    } catch (error) {
+        console.error(error);
+        if (interaction.replied || interaction.deferred) {
+            await interaction.followUp({content: 'There was an error while creating a ticket!', ephemeral: true});
+        } else {
+            await interaction.reply({content: 'There was an error while creating a ticket!', ephemeral: true});
+        }
+    }
+});
+
 client.once('shardReady', shard => {
     shardID = shard += 1;
-    clientID = client.user.id;
     console.log(`Shard ${shardID} Ready!`)
-    client.user.setActivity(`Shard #${shardID}`, {type: ActivityType.Watching})
+    client.user.setActivity(`The Camp!`, {type: ActivityType.Watching})
 })
 
 client.login(botToken)
