@@ -10,8 +10,10 @@ const {botToken} = require("../config");
 
 const VerifyButton = require("./buttons/VerifyButton");
 const TicketButtons = require("./buttons/TicketButtons");
+const SMPApplyButtons = require("./buttons/SMPApplyButtons");
 
 const TicketModal = require("./modals/TicketModal");
+const ApplicationModal = require("./modals/ApplicationModal");
 
 // Listen for slash commands in the commands folder
 client.commands = new Collection();
@@ -95,6 +97,36 @@ client.on(Events.InteractionCreate, async interaction => {
             await interaction.followUp({content: 'There was an error while creating a ticket!', ephemeral: true});
         } else {
             await interaction.reply({content: 'There was an error while creating a ticket!', ephemeral: true});
+        }
+    }
+});
+
+client.on(Events.InteractionCreate, async interaction => {
+    if (!interaction.isButton()) return;
+    if (!interaction.customId.includes('application_')) return;
+    try {
+        await SMPApplyButtons.execute(interaction);
+    } catch (error) {
+        console.error(error);
+        if (interaction.replied || interaction.deferred) {
+            await interaction.followUp({content: 'There was an error while creating your application!', ephemeral: true});
+        } else {
+            await interaction.reply({content: 'There was an error while creating your application!', ephemeral: true});
+        }
+    }
+});
+
+client.on(Events.InteractionCreate, async interaction => {
+    if (!interaction.isModalSubmit()) return;
+    if (!interaction.customId.includes('application_create_modal')) return;
+    try {
+        await ApplicationModal.execute(interaction);
+    } catch (error) {
+        console.error(error);
+        if (interaction.replied || interaction.deferred) {
+            await interaction.followUp({content: 'There was an error while creating your application!', ephemeral: true});
+        } else {
+            await interaction.reply({content: 'There was an error while creating your application!', ephemeral: true});
         }
     }
 });
