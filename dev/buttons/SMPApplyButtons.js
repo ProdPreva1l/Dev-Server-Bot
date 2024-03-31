@@ -38,10 +38,18 @@ module.exports = {
             return;
         }
         if (interaction.customId === 'application_deny') {
+            if (!interaction.member.roles.cache.some(role => role.id === '1211915829831143464')) {
+                await interaction.reply({content: "No Permission!", ephemeral: true})
+                return;
+            }
             await interaction.reply({content: `Denying!`, ephemeral: true});
             await interaction.channel.delete();
         }
         if (interaction.customId === 'application_accept') {
+            if (!interaction.member.roles.cache.some(role => role.id === '1211915829831143464')) {
+                await interaction.reply({content: "No Permission!", ephemeral: true})
+                return;
+            }
             await interaction.reply({content: `Your application has been accepted and you have been added to the whitelist!`});
         }
     }
